@@ -1,28 +1,86 @@
-# Questionário Streamlit — Decisão Humana, IA e Modelo Híbrido
+# Questionário Streamlit + Google Sheets
 
-## Como usar localmente
+Esta versão grava diretamente todas as respostas numa Google Sheet.
 
-1. Instalar dependências:
+## Ficheiros do projeto
 
-```bash
-pip install -r requirements.txt
+```text
+app.py
+scenarios.json
+requirements.txt
+README.md
+.streamlit/secrets.example.toml
+assets/scenarios/
 ```
 
-2. Executar:
+## Como funciona
 
-```bash
-streamlit run app.py
+Cada participante gera 16 linhas na folha `responses`, uma por cenário.
+
+A aplicação cria automaticamente a folha `responses` e os cabeçalhos, desde que a Google Sheet exista e esteja partilhada com a Service Account.
+
+## Passo 1 — Criar Google Sheet
+
+1. Abre Google Sheets.
+2. Cria uma folha nova.
+3. Copia o ID da folha.
+
+Exemplo:
+
+```text
+https://docs.google.com/spreadsheets/d/1ABCDEF123456789/edit
 ```
 
-## Dashboards
+O ID é:
 
-Colocar as imagens dos cenários nesta pasta:
+```text
+1ABCDEF123456789
+```
+
+## Passo 2 — Criar Service Account
+
+1. Vai a Google Cloud Console.
+2. Cria um projeto.
+3. Ativa a Google Sheets API.
+4. Cria uma Service Account.
+5. Cria uma chave JSON.
+6. Copia os campos do ficheiro JSON.
+
+## Passo 3 — Partilhar a Google Sheet
+
+No ficheiro JSON existe um email do tipo:
+
+```text
+xxxxx@xxxxx.iam.gserviceaccount.com
+```
+
+Na Google Sheet, clica em Partilhar e dá permissão de Editor a esse email.
+
+## Passo 4 — Configurar Streamlit Secrets
+
+No Streamlit Community Cloud:
+
+```text
+App → Settings → Secrets
+```
+
+Cola o conteúdo baseado no ficheiro:
+
+```text
+.streamlit/secrets.example.toml
+```
+
+Nunca coloques as credenciais reais no GitHub.
+
+## Passo 5 — Dashboards
+
+Coloca os dashboards em:
 
 ```text
 assets/scenarios/
 ```
 
-Com estes nomes:
+Com nomes:
 
 ```text
 c01.png
@@ -31,28 +89,32 @@ c02.png
 c16.png
 ```
 
-Enquanto as imagens não existirem, a app mostra placeholders.
+Enquanto não existirem, a aplicação mostra placeholders.
 
-## Dados da IA
+## Passo 6 — Editar dados da IA
 
-Editar o ficheiro:
+Edita:
 
 ```text
 scenarios.json
 ```
 
-Campos principais:
-
-- ai_signal
-- ai_confidence
-- ai_factors
-
-## Exportação
-
-As respostas são guardadas automaticamente no ficheiro:
+Campos:
 
 ```text
-responses.csv
+ai_signal
+ai_confidence
+ai_factors
 ```
 
-Cada linha corresponde a uma resposta de um participante para um cenário.
+## Deploy no Streamlit
+
+No Streamlit Community Cloud:
+
+```text
+Repository: o teu repositório
+Branch: main
+Main file path: app.py
+```
+
+Depois clica em Deploy.

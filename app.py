@@ -1,18 +1,20 @@
-import streamlit as st
-import pandas as pd
 import json
-import os
+import uuid
 from datetime import datetime
 from pathlib import Path
-import uuid
+
+import gspread
+import streamlit as st
+from google.oauth2.service_account import Credentials
+
 
 st.set_page_config(
     page_title="Questionário — Decisão Humana e IA",
     layout="centered"
 )
 
-DATA_FILE = "responses.csv"
 SCENARIOS_FILE = "scenarios.json"
+WORKSHEET_NAME = "responses"
 
 DECISIONS = ["Long", "Neutro", "Short"]
 SCALE_1_7 = list(range(1, 8))
@@ -27,32 +29,114 @@ MAIN_FACTORS = [
     "Intuição/Experiência"
 ]
 
+HEADERS = [
+    "participant_id",
+    "started_at",
+    "finished_at",
+    "consentimento",
+    "perfil_01",
+    "perfil_02",
+    "perfil_03",
+    "perfil_04",
+    "perfil_05",
+    "scenario_id",
+    "scenario_label",
+    "hum_decision_initial",
+    "hum_confidence_initial",
+    "hum_main_factor",
+    "hum_risk_perceived",
+    "ai_signal",
+    "ai_confidence",
+    "ai_factors",
+    "ia_agreement",
+    "ia_trust",
+    "ia_explainability",
+    "hyb_change",
+    "hyb_decision_final",
+    "hyb_influence",
+    "hyb_confidence_final",
+    "decision_changed",
+    "confidence_change",
+    "final_01_difficulty",
+    "final_02_general_confidence",
+    "final_03_ai_usefulness",
+    "final_04_ai_revision_frequency",
+    "final_05_perceived_correctness",
+    "final_06_willingness_to_use_ai"
+]
+
+
 def load_scenarios():
-    with open(SCENARIOS_FILE, "r", encoding="utf-8") as f:
-        return json.load(f)
+    with open(SCENARIOS_FILE, "r", encoding="utf-8") as file:
+        return json.load(file)
+
 
 def init_state():
     if "participant_id" not in st.session_state:
         st.session_state.participant_id = str(uuid.uuid4())
+
     if "started_at" not in st.session_state:
         st.session_state.started_at = datetime.now().isoformat(timespec="seconds")
 
-def save_response(data):
-    df = pd.DataFrame(data)
-    file_exists = os.path.exists(DATA_FILE)
+    if "submitted" not in st.session_state:
+        st.session_state.submitted = False
 
-    df.to_csv(
-        DATA_FILE,
-        mode="a",
-        index=False,
-        header=not file_exists,
-        encoding="utf-8-sig"
+
+@st.cache_resource
+def get_worksheet():
+    if "gcp_service_account" not in st.secrets:
+        st.error("Falta configurar o bloco [gcp_service_account] nos Streamlit Secrets.")
+        st.stop()
+
+    service_account_info = dict(st.secrets["gcp_service_account"])
+
+    if "spreadsheet_id" not in service_account_info:
+        st.error("Falta o campo spreadsheet_id nos Streamlit Secrets.")
+        st.stop()
+
+    spreadsheet_id = service_account_info.pop("spreadsheet_id")
+
+    credentials = Credentials.from_service_account_info(
+        service_account_info,
+        scopes=[
+            "https://www.googleapis.com/auth/spreadsheets",
+            "https://www.googleapis.com/auth/drive"
+        ]
     )
 
-def show_scale(label, key, low=None, high=None):
+    client = gspread.authorize(credentials)
+    spreadsheet = client.open_by_key(spreadsheet_id)
+
+    try:
+        worksheet = spreadsheet.worksheet(WORKSHEET_NAME)
+    except gspread.WorksheetNotFound:
+        worksheet = spreadsheet.add_worksheet(
+            title=WORKSHEET_NAME,
+            rows=2000,
+            cols=len(HEADERS)
+        )
+        worksheet.append_row(HEADERS)
+
+    current_headers = worksheet.row_values(1)
+
+    if current_headers != HEADERS:
+        worksheet.clear()
+        worksheet.append_row(HEADERS)
+
+    return worksheet
+
+
+def save_rows_to_google_sheets(rows):
+    worksheet = get_worksheet()
+    values = [[row.get(header, "") for header in HEADERS] for row in rows]
+    worksheet.append_rows(values, value_input_option="USER_ENTERED")
+
+
+def scale_question(label, key, low_label=None, high_label=None):
     help_text = ""
-    if low and high:
-        help_text = f"1 = {low} | 7 = {high}"
+    if low_label and high_label:
+        help_text = f"1 = {low_label} | 7 = {high_label}"
+
     return st.radio(
         label,
         SCALE_1_7,
@@ -61,40 +145,41 @@ def show_scale(label, key, low=None, high=None):
         help=help_text
     )
 
-def show_scenario(s):
-    st.header(s["label"])
 
-    image_path = Path(s["image"])
+def render_scenario(scenario):
+    st.header(scenario["label"])
+
+    image_path = Path(scenario["image"])
     if image_path.exists():
         st.image(str(image_path), use_container_width=True)
     else:
-        st.info(f"[INSERIR DASHBOARD: {s['image']}]")
+        st.info(f"[INSERIR DASHBOARD: {scenario['image']}]")
 
     st.subheader("Bloco A — Modelo Humano")
 
-    hum_decision = st.radio(
+    hum_decision_initial = st.radio(
         "Qual seria a sua decisão para a próxima sessão de mercado?",
         DECISIONS,
         horizontal=True,
-        key=f"{s['id']}_hum_decision"
+        key=f"{scenario['id']}_hum_decision_initial"
     )
 
-    hum_confidence = show_scale(
+    hum_confidence_initial = scale_question(
         "Qual o grau de confiança na sua decisão inicial?",
-        f"{s['id']}_hum_confidence",
+        f"{scenario['id']}_hum_confidence_initial",
         "Muito baixa",
         "Muito elevada"
     )
 
-    hum_factor = st.radio(
+    hum_main_factor = st.radio(
         "Qual o principal fator que influenciou a sua decisão?",
         MAIN_FACTORS,
-        key=f"{s['id']}_hum_factor"
+        key=f"{scenario['id']}_hum_main_factor"
     )
 
-    hum_risk = show_scale(
+    hum_risk_perceived = scale_question(
         "Como classifica o risco deste cenário?",
-        f"{s['id']}_hum_risk",
+        f"{scenario['id']}_hum_risk_perceived",
         "Muito baixo",
         "Muito elevado"
     )
@@ -103,29 +188,29 @@ def show_scenario(s):
 
     st.markdown(
         f"""
-        **Sinal da IA:** {s["ai_signal"]}  
-        **Confiança do modelo:** {s["ai_confidence"]}  
-        **Principais fatores:** {", ".join(s["ai_factors"])}
+        **Sinal da IA:** {scenario["ai_signal"]}  
+        **Confiança do modelo:** {scenario["ai_confidence"]}  
+        **Principais fatores:** {", ".join(scenario["ai_factors"])}
         """
     )
 
-    ia_agreement = show_scale(
+    ia_agreement = scale_question(
         "Antes de observar a explicação da IA, qual o grau de concordância com a recomendação apresentada?",
-        f"{s['id']}_ia_agreement",
+        f"{scenario['id']}_ia_agreement",
         "Discordância total",
         "Concordância total"
     )
 
-    ia_trust = show_scale(
+    ia_trust = scale_question(
         "Qual o grau de confiança que deposita nesta recomendação da IA?",
-        f"{s['id']}_ia_trust",
+        f"{scenario['id']}_ia_trust",
         "Nenhuma confiança",
         "Confiança muito elevada"
     )
 
-    ia_explainability = show_scale(
+    ia_explainability = scale_question(
         "Os fatores apresentados pela IA ajudaram a compreender a recomendação?",
-        f"{s['id']}_ia_explainability",
+        f"{scenario['id']}_ia_explainability",
         "Nada",
         "Muito"
     )
@@ -135,65 +220,72 @@ def show_scenario(s):
     hyb_change = st.radio(
         "Após observar a recomendação da IA pretende:",
         ["Manter a decisão inicial", "Alterar a decisão inicial"],
-        key=f"{s['id']}_hyb_change"
+        key=f"{scenario['id']}_hyb_change"
     )
 
-    hyb_final_decision = st.radio(
+    hyb_decision_final = st.radio(
         "Qual é a sua decisão final?",
         DECISIONS,
         horizontal=True,
-        key=f"{s['id']}_hyb_final_decision"
+        key=f"{scenario['id']}_hyb_decision_final"
     )
 
-    hyb_influence = show_scale(
+    hyb_influence = scale_question(
         "Em que medida a IA influenciou a sua decisão final?",
-        f"{s['id']}_hyb_influence",
+        f"{scenario['id']}_hyb_influence",
         "Nenhuma influência",
         "Influência muito elevada"
     )
 
-    hyb_final_confidence = show_scale(
+    hyb_confidence_final = scale_question(
         "Qual o grau de confiança na sua decisão final?",
-        f"{s['id']}_hyb_final_confidence",
+        f"{scenario['id']}_hyb_confidence_final",
         "Muito baixa",
         "Muito elevada"
     )
 
     return {
-        "scenario_id": s["id"],
-        "scenario_label": s["label"],
-        "hum_decision_initial": hum_decision,
-        "hum_confidence_initial": hum_confidence,
-        "hum_main_factor": hum_factor,
-        "hum_risk_perceived": hum_risk,
-        "ai_signal": s["ai_signal"],
-        "ai_confidence": s["ai_confidence"],
-        "ai_factors": "; ".join(s["ai_factors"]),
+        "scenario_id": scenario["id"],
+        "scenario_label": scenario["label"],
+        "hum_decision_initial": hum_decision_initial,
+        "hum_confidence_initial": hum_confidence_initial,
+        "hum_main_factor": hum_main_factor,
+        "hum_risk_perceived": hum_risk_perceived,
+        "ai_signal": scenario["ai_signal"],
+        "ai_confidence": scenario["ai_confidence"],
+        "ai_factors": "; ".join(scenario["ai_factors"]),
         "ia_agreement": ia_agreement,
         "ia_trust": ia_trust,
         "ia_explainability": ia_explainability,
         "hyb_change": hyb_change,
-        "hyb_decision_final": hyb_final_decision,
+        "hyb_decision_final": hyb_decision_final,
         "hyb_influence": hyb_influence,
-        "hyb_confidence_final": hyb_final_confidence,
-        "decision_changed": int(hum_decision != hyb_final_decision)
+        "hyb_confidence_final": hyb_confidence_final,
+        "decision_changed": int(hum_decision_initial != hyb_decision_final),
+        "confidence_change": hyb_confidence_final - hum_confidence_initial
     }
+
 
 def main():
     init_state()
+
+    if st.session_state.submitted:
+        st.success("As suas respostas já foram registadas. Obrigado pela participação.")
+        return
+
     scenarios = load_scenarios()
 
     st.title("Questionário — Decisão Humana, IA e Modelo Híbrido")
 
     st.write(
         "Este estudo analisa decisões de investimento em cenários financeiros anonimizados, "
-        "comparando decisão humana, recomendação de IA e decisão final híbrida."
+        "comparando decisão humana, recomendação de Inteligência Artificial e decisão final híbrida."
     )
 
-    with st.form("questionnaire_form"):
+    with st.form("survey_form"):
         st.header("Parte 1 — Consentimento informado")
 
-        consent = st.radio(
+        consentimento = st.radio(
             "Declaro que compreendi o objetivo do estudo e aceito participar voluntariamente.",
             ["Sim, aceito participar", "Não aceito participar"]
         )
@@ -234,6 +326,7 @@ def main():
         )
 
         st.header("Parte 3 — Instruções gerais")
+
         st.markdown(
             """
             O questionário contém **16 cenários financeiros anonimizados**.
@@ -256,16 +349,33 @@ def main():
 
         scenario_answers = []
 
-        for s in scenarios:
+        for scenario in scenarios:
             st.divider()
-            scenario_answers.append(show_scenario(s))
+            scenario_answers.append(render_scenario(scenario))
 
         st.divider()
         st.header("Parte 5 — Questões finais")
 
-        final_01 = show_scale("FINAL_01 — Dificuldade geral dos cenários", "final_01", "Muito baixa", "Muito elevada")
-        final_02 = show_scale("FINAL_02 — Confiança geral nas suas decisões", "final_02", "Muito baixa", "Muito elevada")
-        final_03 = show_scale("FINAL_03 — Utilidade percebida da IA", "final_03", "Muito baixa", "Muito elevada")
+        final_01 = scale_question(
+            "FINAL_01 — Dificuldade geral dos cenários",
+            "final_01",
+            "Muito baixa",
+            "Muito elevada"
+        )
+
+        final_02 = scale_question(
+            "FINAL_02 — Confiança geral nas suas decisões",
+            "final_02",
+            "Muito baixa",
+            "Muito elevada"
+        )
+
+        final_03 = scale_question(
+            "FINAL_03 — Utilidade percebida da IA",
+            "final_03",
+            "Muito baixa",
+            "Muito elevada"
+        )
 
         final_04 = st.radio(
             "FINAL_04 — Com que frequência a IA levou-o(a) a rever decisões?",
@@ -277,7 +387,7 @@ def main():
             ["0–25%", "26–50%", "51–75%", "76–100%"]
         )
 
-        final_06 = show_scale(
+        final_06 = scale_question(
             "FINAL_06 — Em contexto real de investimento, estaria disposto a utilizar recomendações geradas por IA?",
             "final_06",
             "Nunca",
@@ -287,37 +397,44 @@ def main():
         submitted = st.form_submit_button("Submeter respostas")
 
     if submitted:
-        if consent == "Não aceito participar":
-            st.warning("Obrigado pelo seu tempo. Como não aceitou participar, as restantes respostas não serão registadas.")
+        if consentimento == "Não aceito participar":
+            st.warning("Obrigado pelo seu tempo. Como não aceitou participar, as respostas não foram registadas.")
             return
 
         finished_at = datetime.now().isoformat(timespec="seconds")
 
         rows = []
-        for ans in scenario_answers:
+
+        for answer in scenario_answers:
             row = {
                 "participant_id": st.session_state.participant_id,
                 "started_at": st.session_state.started_at,
                 "finished_at": finished_at,
-                "consent": consent,
+                "consentimento": consentimento,
                 "perfil_01": perfil_01,
                 "perfil_02": perfil_02,
                 "perfil_03": perfil_03,
                 "perfil_04": perfil_04,
                 "perfil_05": perfil_05,
-                "final_01": final_01,
-                "final_02": final_02,
-                "final_03": final_03,
-                "final_04": final_04,
-                "final_05": final_05,
-                "final_06": final_06,
+                "final_01_difficulty": final_01,
+                "final_02_general_confidence": final_02,
+                "final_03_ai_usefulness": final_03,
+                "final_04_ai_revision_frequency": final_04,
+                "final_05_perceived_correctness": final_05,
+                "final_06_willingness_to_use_ai": final_06
             }
-            row.update(ans)
+
+            row.update(answer)
             rows.append(row)
 
-        save_response(rows)
+        try:
+            save_rows_to_google_sheets(rows)
+            st.session_state.submitted = True
+            st.success("Obrigado. As suas respostas foram registadas com sucesso na Google Sheets.")
+        except Exception as error:
+            st.error("Ocorreu um erro ao gravar as respostas. Por favor, contacte o investigador responsável.")
+            st.exception(error)
 
-        st.success("Obrigado. As suas respostas foram registadas com sucesso.")
 
 if __name__ == "__main__":
     main()
