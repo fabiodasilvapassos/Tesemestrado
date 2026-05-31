@@ -151,9 +151,11 @@ def render_initial_page():
     )
 
     if consentimento == "Não aceito participar":
-        st.warning(
-            "Obrigado pelo seu tempo. Como não aceitou participar, "
-            "o questionário termina aqui."
+        st.title("Participação não autorizada")
+        st.success(
+            "Obrigado pelo seu tempo.\n\n"
+            "Como não aceitou participar, o questionário foi encerrado.\n\n"
+            "Pode fechar esta janela."
         )
         st.stop()
 
