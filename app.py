@@ -137,11 +137,25 @@ def render_initial_page():
 
     st.header("Parte 1 — Consentimento informado")
 
+    st.info(
+        "O presente estudo integra uma dissertação de mestrado. "
+        "A participação é voluntária e os dados recolhidos serão utilizados exclusivamente "
+        "para fins académicos e científicos. Não serão recolhidos dados de identificação direta, "
+        "tais como nome, email, telefone, morada ou NIF. Pode interromper a participação a qualquer momento."
+    )
+
     consentimento = st.radio(
-        "Declaro que compreendi o objetivo do estudo e aceito participar voluntariamente.",
+        "Declaro que li e compreendi a informação apresentada e aceito participar voluntariamente.",
         ["Sim, aceito participar", "Não aceito participar"],
         key="consentimento",
     )
+
+    if consentimento == "Não aceito participar":
+        st.warning(
+            "Obrigado pelo seu tempo. Como não aceitou participar, "
+            "o questionário termina aqui."
+        )
+        st.stop()
 
     st.header("Parte 2 — Caracterização do participante")
 
@@ -206,8 +220,8 @@ def render_initial_page():
     )
 
     if st.button("Começar cenários"):
-        if consentimento == "Não aceito participar":
-            st.warning("Obrigado pelo seu tempo. Como não aceitou participar, o questionário termina aqui.")
+        if consentimento != "Sim, aceito participar":
+            st.warning("Para avançar é necessário aceitar participar voluntariamente no estudo.")
             st.stop()
 
         st.session_state.profile.update(
