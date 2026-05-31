@@ -25,7 +25,7 @@ MAIN_FACTORS = [
     "Volume",
     "Volatilidade",
     "Combinação de fatores",
-    "Intuição/Experiência"
+    "Intuição/Experiência",
 ]
 
 
@@ -52,20 +52,20 @@ def load_scenarios():
 
 
 def init_state():
-    if "participant_id" not in st.session_state:
-        st.session_state.participant_id = str(uuid.uuid4())
-    if "started_at" not in st.session_state:
-        st.session_state.started_at = datetime.now().isoformat(timespec="seconds")
-    if "page" not in st.session_state:
-        st.session_state.page = 0
-    if "submitted" not in st.session_state:
-        st.session_state.submitted = False
-    if "profile" not in st.session_state:
-        st.session_state.profile = {}
-    if "answers" not in st.session_state:
-        st.session_state.answers = {}
-    if "final_answers" not in st.session_state:
-        st.session_state.final_answers = {}
+    defaults = {
+        "participant_id": str(uuid.uuid4()),
+        "started_at": datetime.now().isoformat(timespec="seconds"),
+        "page": 0,
+        "submitted": False,
+        "profile": {},
+        "answers": {},
+        "final_answers": {},
+        "scenario_stage": {},
+    }
+
+    for key, value in defaults.items():
+        if key not in st.session_state:
+            st.session_state[key] = value
 
 
 def next_page():
@@ -94,7 +94,7 @@ def scale_question(label, key, low_label=None, high_label=None):
         SCALE_1_7,
         horizontal=True,
         key=key,
-        help=help_text
+        help=help_text,
     )
 
 
@@ -104,34 +104,45 @@ def show_progress(total_pages):
     st.caption(f"Etapa {current} de {total_pages}")
 
 
-def render_header():
+def ensure_scenario_state(sid):
+    if sid not in st.session_state.answers:
+        st.session_state.answers[sid] = {}
+
+    if sid not in st.session_state.scenario_stage:
+        st.session_state.scenario_stage[sid] = "A"
+
+
+def render_dashboard(scenario):
+    image_path = Path(scenario["image"])
+    if image_path.exists():
+        st.image(str(image_path), use_container_width=True)
+    else:
+        st.info(f"[INSERIR DASHBOARD: {scenario['image']}]")
+
+
+def render_summary_box(title, rows):
+    st.markdown(f"### {title}")
+    with st.container(border=True):
+        for label, value in rows:
+            st.markdown(f"**{label}:** {value}")
+
+
+def render_initial_page():
     st.title("Questionário — Decisão Humana, IA e Modelo Híbrido")
+
     st.write(
         "Este estudo analisa decisões de investimento em cenários financeiros anonimizados, "
         "comparando decisão humana, recomendação de Inteligência Artificial e decisão final híbrida."
     )
 
-
-def render_consent():
-    render_header()
     st.header("Parte 1 — Consentimento informado")
 
     consentimento = st.radio(
         "Declaro que compreendi o objetivo do estudo e aceito participar voluntariamente.",
         ["Sim, aceito participar", "Não aceito participar"],
-        key="consentimento"
+        key="consentimento",
     )
 
-    if st.button("Continuar"):
-        if consentimento == "Não aceito participar":
-            st.warning("Obrigado pelo seu tempo. Como não aceitou participar, o questionário termina aqui.")
-            st.stop()
-
-        st.session_state.profile["consentimento"] = consentimento
-        next_page()
-
-
-def render_profile():
     st.header("Parte 2 — Caracterização do participante")
 
     perfil_01 = st.radio(
@@ -143,54 +154,35 @@ def render_profile():
             "Experiência profissional em investimento",
             "Experiência profissional em corretagem",
             "Experiência profissional em gestão de risco",
-            "Outro"
+            "Outro",
         ],
-        key="perfil_01"
+        key="perfil_01",
     )
 
     perfil_02 = st.radio(
         "Frequência com que acompanha mercados financeiros",
         ["Raramente", "Mensalmente", "Semanalmente", "Diariamente", "Várias vezes por dia"],
-        key="perfil_02"
+        key="perfil_02",
     )
 
     perfil_03 = st.radio(
         "Familiaridade com análise técnica",
         ["Nenhuma", "Baixa", "Moderada", "Elevada", "Muito elevada"],
-        key="perfil_03"
+        key="perfil_03",
     )
 
     perfil_04 = st.radio(
         "Familiaridade com Inteligência Artificial aplicada a finanças",
         ["Nenhuma", "Baixa", "Moderada", "Elevada", "Muito elevada"],
-        key="perfil_04"
+        key="perfil_04",
     )
 
     perfil_05 = st.radio(
         "Familiaridade com estratégias Short",
         ["Nenhuma", "Baixa", "Moderada", "Elevada"],
-        key="perfil_05"
+        key="perfil_05",
     )
 
-    col1, col2 = st.columns(2)
-
-    with col1:
-        if st.button("Voltar"):
-            previous_page()
-
-    with col2:
-        if st.button("Continuar"):
-            st.session_state.profile.update({
-                "perfil_01": perfil_01,
-                "perfil_02": perfil_02,
-                "perfil_03": perfil_03,
-                "perfil_04": perfil_04,
-                "perfil_05": perfil_05
-            })
-            next_page()
-
-
-def render_instructions():
     st.header("Parte 3 — Instruções gerais")
 
     st.markdown(
@@ -213,195 +205,253 @@ def render_instructions():
         """
     )
 
-    col1, col2 = st.columns(2)
+    if st.button("Começar cenários"):
+        if consentimento == "Não aceito participar":
+            st.warning("Obrigado pelo seu tempo. Como não aceitou participar, o questionário termina aqui.")
+            st.stop()
 
-    with col1:
-        if st.button("Voltar"):
-            previous_page()
+        st.session_state.profile.update(
+            {
+                "consentimento": consentimento,
+                "perfil_01": perfil_01,
+                "perfil_02": perfil_02,
+                "perfil_03": perfil_03,
+                "perfil_04": perfil_04,
+                "perfil_05": perfil_05,
+            }
+        )
 
-    with col2:
-        if st.button("Começar cenários"):
-            next_page()
-
-
-def ensure_scenario_answer(scenario_id):
-    if scenario_id not in st.session_state.answers:
-        st.session_state.answers[scenario_id] = {}
-
-
-def render_dashboard(scenario):
-    image_path = Path(scenario["image"])
-    if image_path.exists():
-        st.image(str(image_path), use_container_width=True)
-    else:
-        st.info(f"[INSERIR DASHBOARD: {scenario['image']}]")
+        next_page()
 
 
-def render_scenario_block_a(scenario):
+def render_locked_block_a(ans):
+    render_summary_box(
+        "Bloco A — Decisão humana inicial registada",
+        [
+            ("Decisão inicial", ans.get("hum_decision_initial", "Não registada")),
+            ("Confiança inicial", f"{ans.get('hum_confidence_initial', 'Não registada')}/7"),
+            ("Fator principal", ans.get("hum_main_factor", "Não registado")),
+            ("Risco percebido", f"{ans.get('hum_risk_perceived', 'Não registado')}/7"),
+        ],
+    )
+    st.caption("O Bloco A já foi guardado e não pode ser alterado.")
+
+
+def render_locked_block_b(ans, scenario):
+    render_summary_box(
+        "Bloco B — Recomendação da IA e avaliação registada",
+        [
+            ("Sinal da IA", ans.get("ai_signal", scenario["ai_signal"])),
+            ("Confiança do modelo", ans.get("ai_confidence", scenario["ai_confidence"])),
+            ("Principais fatores", ans.get("ai_factors", "; ".join(scenario["ai_factors"]))),
+            ("Concordância com a IA", f"{ans.get('ia_agreement', 'Não registada')}/7"),
+            ("Confiança na IA", f"{ans.get('ia_trust', 'Não registada')}/7"),
+            ("Explicabilidade", f"{ans.get('ia_explainability', 'Não registada')}/7"),
+        ],
+    )
+    st.caption("O Bloco B já foi guardado e não pode ser alterado.")
+
+
+def render_block_a_editable(scenario):
     sid = scenario["id"]
-    ensure_scenario_answer(sid)
+    ans = st.session_state.answers[sid]
 
-    st.header(f"{scenario['label']} — Bloco A: Modelo Humano")
-    render_dashboard(scenario)
+    st.subheader("Bloco A — Modelo Humano")
+    st.warning(
+        "Nesta etapa deve decidir apenas com base no dashboard apresentado. "
+        "A recomendação da IA ainda não está visível."
+    )
 
     hum_decision_initial = st.radio(
         "Qual seria a sua decisão para a próxima sessão de mercado?",
         DECISIONS,
         horizontal=True,
-        key=f"{sid}_hum_decision_initial"
+        key=f"{sid}_hum_decision_initial",
     )
 
     hum_confidence_initial = scale_question(
         "Qual o grau de confiança na sua decisão inicial?",
         f"{sid}_hum_confidence_initial",
         "Muito baixa",
-        "Muito elevada"
+        "Muito elevada",
     )
 
     hum_main_factor = st.radio(
         "Qual o principal fator que influenciou a sua decisão?",
         MAIN_FACTORS,
-        key=f"{sid}_hum_main_factor"
+        key=f"{sid}_hum_main_factor",
     )
 
     hum_risk_perceived = scale_question(
         "Como classifica o risco deste cenário?",
         f"{sid}_hum_risk_perceived",
         "Muito baixo",
-        "Muito elevado"
+        "Muito elevado",
     )
 
-    st.info("A recomendação da IA será apresentada apenas na próxima etapa.")
-
-    col1, col2 = st.columns(2)
-
-    with col1:
-        if st.button("Voltar"):
-            previous_page()
-
-    with col2:
-        if st.button("Guardar e continuar"):
-            st.session_state.answers[sid].update({
+    if st.button("Guardar Bloco A e mostrar Bloco B", key=f"{sid}_save_a"):
+        ans.update(
+            {
                 "scenario_id": sid,
                 "scenario_label": scenario["label"],
                 "hum_decision_initial": hum_decision_initial,
                 "hum_confidence_initial": hum_confidence_initial,
                 "hum_main_factor": hum_main_factor,
                 "hum_risk_perceived": hum_risk_perceived,
-            })
-            next_page()
+            }
+        )
+        st.session_state.scenario_stage[sid] = "B"
+        st.rerun()
 
 
-def render_scenario_block_b(scenario):
+def render_block_b_editable(scenario):
     sid = scenario["id"]
-    ensure_scenario_answer(sid)
+    ans = st.session_state.answers[sid]
 
-    st.header(f"{scenario['label']} — Bloco B: Modelo IA")
+    st.subheader("Bloco B — Modelo IA")
 
-    st.markdown(
-        f"""
-        **Sinal da IA:** {scenario["ai_signal"]}  
-        **Confiança do modelo:** {scenario["ai_confidence"]}  
-        **Principais fatores:** {", ".join(scenario["ai_factors"])}
-        """
+    render_summary_box(
+        "Recomendação da Inteligência Artificial",
+        [
+            ("Sinal da IA", scenario["ai_signal"]),
+            ("Confiança do modelo", scenario["ai_confidence"]),
+            ("Principais fatores", ", ".join(scenario["ai_factors"])),
+        ],
     )
 
     ia_agreement = scale_question(
         "Antes de observar a explicação da IA, qual o grau de concordância com a recomendação apresentada?",
         f"{sid}_ia_agreement",
         "Discordância total",
-        "Concordância total"
+        "Concordância total",
     )
 
     ia_trust = scale_question(
         "Qual o grau de confiança que deposita nesta recomendação da IA?",
         f"{sid}_ia_trust",
         "Nenhuma confiança",
-        "Confiança muito elevada"
+        "Confiança muito elevada",
     )
 
     ia_explainability = scale_question(
         "Os fatores apresentados pela IA ajudaram a compreender a recomendação?",
         f"{sid}_ia_explainability",
         "Nada",
-        "Muito"
+        "Muito",
     )
 
-    col1, col2 = st.columns(2)
-
-    with col1:
-        if st.button("Voltar"):
-            previous_page()
-
-    with col2:
-        if st.button("Guardar e continuar"):
-            st.session_state.answers[sid].update({
+    if st.button("Guardar Bloco B e mostrar Bloco C", key=f"{sid}_save_b"):
+        ans.update(
+            {
                 "ai_signal": scenario["ai_signal"],
                 "ai_confidence": scenario["ai_confidence"],
                 "ai_factors": "; ".join(scenario["ai_factors"]),
                 "ia_agreement": ia_agreement,
                 "ia_trust": ia_trust,
                 "ia_explainability": ia_explainability,
-            })
-            next_page()
+            }
+        )
+        st.session_state.scenario_stage[sid] = "C"
+        st.rerun()
 
 
-def render_scenario_block_c(scenario):
+def render_block_c_editable(scenario):
     sid = scenario["id"]
-    ensure_scenario_answer(sid)
+    ans = st.session_state.answers[sid]
 
-    st.header(f"{scenario['label']} — Bloco C: Modelo Híbrido")
-
-    previous_decision = st.session_state.answers[sid].get("hum_decision_initial", "não registada")
-    st.caption(f"Decisão inicial registada no Bloco A: {previous_decision}")
+    st.subheader("Bloco C — Modelo Híbrido")
 
     hyb_change = st.radio(
         "Após observar a recomendação da IA pretende:",
         ["Manter a decisão inicial", "Alterar a decisão inicial"],
-        key=f"{sid}_hyb_change"
+        key=f"{sid}_hyb_change",
     )
 
     hyb_decision_final = st.radio(
         "Qual é a sua decisão final?",
         DECISIONS,
         horizontal=True,
-        key=f"{sid}_hyb_decision_final"
+        key=f"{sid}_hyb_decision_final",
     )
 
     hyb_influence = scale_question(
         "Em que medida a IA influenciou a sua decisão final?",
         f"{sid}_hyb_influence",
         "Nenhuma influência",
-        "Influência muito elevada"
+        "Influência muito elevada",
     )
 
     hyb_confidence_final = scale_question(
         "Qual o grau de confiança na sua decisão final?",
         f"{sid}_hyb_confidence_final",
         "Muito baixa",
-        "Muito elevada"
+        "Muito elevada",
     )
 
-    col1, col2 = st.columns(2)
+    if st.button("Guardar cenário e continuar", key=f"{sid}_save_c"):
+        initial_decision = ans.get("hum_decision_initial")
+        initial_confidence = ans.get("hum_confidence_initial")
 
-    with col1:
-        if st.button("Voltar"):
-            previous_page()
-
-    with col2:
-        if st.button("Guardar e continuar"):
-            initial_decision = st.session_state.answers[sid].get("hum_decision_initial")
-            initial_confidence = st.session_state.answers[sid].get("hum_confidence_initial")
-
-            st.session_state.answers[sid].update({
+        ans.update(
+            {
                 "hyb_change": hyb_change,
                 "hyb_decision_final": hyb_decision_final,
                 "hyb_influence": hyb_influence,
                 "hyb_confidence_final": hyb_confidence_final,
                 "decision_changed": int(initial_decision != hyb_decision_final),
-                "confidence_change": hyb_confidence_final - initial_confidence
-            })
+                "confidence_change": hyb_confidence_final - initial_confidence,
+            }
+        )
+        st.session_state.scenario_stage[sid] = "DONE"
+        next_page()
+
+
+def render_scenario_page(scenario):
+    sid = scenario["id"]
+    ensure_scenario_state(sid)
+
+    stage = st.session_state.scenario_stage[sid]
+    ans = st.session_state.answers[sid]
+
+    st.header(scenario["label"])
+    render_dashboard(scenario)
+
+    if stage == "A":
+        render_block_a_editable(scenario)
+
+    elif stage == "B":
+        render_locked_block_a(ans)
+        st.divider()
+        render_block_b_editable(scenario)
+
+    elif stage == "C":
+        render_locked_block_a(ans)
+        st.divider()
+        render_locked_block_b(ans, scenario)
+        st.divider()
+        render_block_c_editable(scenario)
+
+    elif stage == "DONE":
+        render_locked_block_a(ans)
+        st.divider()
+        render_locked_block_b(ans, scenario)
+        st.divider()
+        render_summary_box(
+            "Bloco C — Decisão final registada",
+            [
+                ("Manter/Alterar", ans.get("hyb_change", "Não registado")),
+                ("Decisão final", ans.get("hyb_decision_final", "Não registada")),
+                ("Influência da IA", f"{ans.get('hyb_influence', 'Não registada')}/7"),
+                ("Confiança final", f"{ans.get('hyb_confidence_final', 'Não registada')}/7"),
+            ],
+        )
+
+        if st.button("Continuar", key=f"{sid}_continue_done"):
             next_page()
+
+    if st.session_state.page > 1:
+        if st.button("Voltar ao cenário anterior", key=f"{sid}_prev"):
+            previous_page()
 
 
 def render_final_questions():
@@ -411,59 +461,54 @@ def render_final_questions():
         "FINAL_01 — Dificuldade geral dos cenários",
         "final_01",
         "Muito baixa",
-        "Muito elevada"
+        "Muito elevada",
     )
 
     final_02 = scale_question(
         "FINAL_02 — Confiança geral nas suas decisões",
         "final_02",
         "Muito baixa",
-        "Muito elevada"
+        "Muito elevada",
     )
 
     final_03 = scale_question(
         "FINAL_03 — Utilidade percebida da IA",
         "final_03",
         "Muito baixa",
-        "Muito elevada"
+        "Muito elevada",
     )
 
     final_04 = st.radio(
         "FINAL_04 — Com que frequência a IA levou-o(a) a rever decisões?",
         ["Nunca", "Poucas vezes", "Algumas vezes", "Muitas vezes", "Sempre"],
-        key="final_04"
+        key="final_04",
     )
 
     final_05 = st.radio(
         "FINAL_05 — Em quantos cenários acredita ter tomado a decisão correta?",
         ["0–25%", "26–50%", "51–75%", "76–100%"],
-        key="final_05"
+        key="final_05",
     )
 
     final_06 = scale_question(
         "FINAL_06 — Em contexto real de investimento, estaria disposto a utilizar recomendações geradas por IA?",
         "final_06",
         "Nunca",
-        "Sempre"
+        "Sempre",
     )
 
-    col1, col2 = st.columns(2)
-
-    with col1:
-        if st.button("Voltar"):
-            previous_page()
-
-    with col2:
-        if st.button("Submeter respostas"):
-            st.session_state.final_answers.update({
+    if st.button("Submeter respostas"):
+        st.session_state.final_answers.update(
+            {
                 "final_01_difficulty": final_01,
                 "final_02_general_confidence": final_02,
                 "final_03_ai_usefulness": final_03,
                 "final_04_ai_revision_frequency": final_04,
                 "final_05_perceived_correctness": final_05,
-                "final_06_willingness_to_use_ai": final_06
-            })
-            submit_all_answers()
+                "final_06_willingness_to_use_ai": final_06,
+            }
+        )
+        submit_all_answers()
 
 
 def submit_all_answers():
@@ -486,28 +531,22 @@ def submit_all_answers():
             "perfil_03": st.session_state.profile.get("perfil_03"),
             "perfil_04": st.session_state.profile.get("perfil_04"),
             "perfil_05": st.session_state.profile.get("perfil_05"),
-
             "scenario_id": answer.get("scenario_id", sid),
             "scenario_label": answer.get("scenario_label", scenario["label"]),
-
             "hum_decision_initial": answer.get("hum_decision_initial"),
             "hum_confidence_initial": answer.get("hum_confidence_initial"),
             "hum_main_factor": answer.get("hum_main_factor"),
             "hum_risk_perceived": answer.get("hum_risk_perceived"),
-
             "ai_signal": answer.get("ai_signal", scenario["ai_signal"]),
             "ai_confidence": answer.get("ai_confidence", scenario["ai_confidence"]),
             "ai_factors": answer.get("ai_factors", "; ".join(scenario["ai_factors"])),
-
             "ia_agreement": answer.get("ia_agreement"),
             "ia_trust": answer.get("ia_trust"),
             "ia_explainability": answer.get("ia_explainability"),
-
             "hyb_change": answer.get("hyb_change"),
             "hyb_decision_final": answer.get("hyb_decision_final"),
             "hyb_influence": answer.get("hyb_influence"),
             "hyb_confidence_final": answer.get("hyb_confidence_final"),
-
             "decision_changed": answer.get("decision_changed"),
             "confidence_change": answer.get("confidence_change"),
         }
@@ -534,39 +573,23 @@ def main():
 
     scenarios = load_scenarios()
 
-    total_pages = 3 + (len(scenarios) * 3) + 1
+    total_pages = 1 + len(scenarios) + 1
     show_progress(total_pages)
 
     page = st.session_state.page
 
     if page == 0:
-        render_consent()
-    elif page == 1:
-        render_profile()
-    elif page == 2:
-        render_instructions()
+        render_initial_page()
+
+    elif 1 <= page <= len(scenarios):
+        scenario = scenarios[page - 1]
+        render_scenario_page(scenario)
+
+    elif page == len(scenarios) + 1:
+        render_final_questions()
+
     else:
-        scenario_pages_start = 3
-        scenario_pages_total = len(scenarios) * 3
-        final_page = scenario_pages_start + scenario_pages_total
-
-        if page == final_page:
-            render_final_questions()
-        elif page > final_page:
-            st.success("Questionário concluído.")
-        else:
-            relative_page = page - scenario_pages_start
-            scenario_index = relative_page // 3
-            block_index = relative_page % 3
-
-            scenario = scenarios[scenario_index]
-
-            if block_index == 0:
-                render_scenario_block_a(scenario)
-            elif block_index == 1:
-                render_scenario_block_b(scenario)
-            elif block_index == 2:
-                render_scenario_block_c(scenario)
+        st.success("Questionário concluído.")
 
 
 if __name__ == "__main__":
