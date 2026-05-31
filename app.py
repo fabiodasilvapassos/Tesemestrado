@@ -3,9 +3,8 @@ import uuid
 from datetime import datetime
 from pathlib import Path
 
-import gspread
 import streamlit as st
-from google.oauth2.service_account import Credentials
+from supabase import create_client, Client
 
 
 st.set_page_config(
@@ -14,7 +13,7 @@ st.set_page_config(
 )
 
 SCENARIOS_FILE = "scenarios.json"
-WORKSHEET_NAME = "responses"
+SUPABASE_TABLE = "responses"
 
 DECISIONS = ["Long", "Neutro", "Short"]
 SCALE_1_7 = list(range(1, 8))
@@ -29,41 +28,21 @@ MAIN_FACTORS = [
     "Intuição/Experiência"
 ]
 
-HEADERS = [
-    "participant_id",
-    "started_at",
-    "finished_at",
-    "consentimento",
-    "perfil_01",
-    "perfil_02",
-    "perfil_03",
-    "perfil_04",
-    "perfil_05",
-    "scenario_id",
-    "scenario_label",
-    "hum_decision_initial",
-    "hum_confidence_initial",
-    "hum_main_factor",
-    "hum_risk_perceived",
-    "ai_signal",
-    "ai_confidence",
-    "ai_factors",
-    "ia_agreement",
-    "ia_trust",
-    "ia_explainability",
-    "hyb_change",
-    "hyb_decision_final",
-    "hyb_influence",
-    "hyb_confidence_final",
-    "decision_changed",
-    "confidence_change",
-    "final_01_difficulty",
-    "final_02_general_confidence",
-    "final_03_ai_usefulness",
-    "final_04_ai_revision_frequency",
-    "final_05_perceived_correctness",
-    "final_06_willingness_to_use_ai"
-]
+
+@st.cache_resource
+def get_supabase_client() -> Client:
+    if "supabase" not in st.secrets:
+        st.error("Falta configurar o bloco [supabase] nos Streamlit Secrets.")
+        st.stop()
+
+    url = st.secrets["supabase"].get("url")
+    key = st.secrets["supabase"].get("key")
+
+    if not url or not key:
+        st.error("Faltam os campos url e/ou key nos Streamlit Secrets.")
+        st.stop()
+
+    return create_client(url, key)
 
 
 def load_scenarios():
@@ -82,54 +61,10 @@ def init_state():
         st.session_state.submitted = False
 
 
-@st.cache_resource
-def get_worksheet():
-    if "gcp_service_account" not in st.secrets:
-        st.error("Falta configurar o bloco [gcp_service_account] nos Streamlit Secrets.")
-        st.stop()
-
-    service_account_info = dict(st.secrets["gcp_service_account"])
-
-    if "spreadsheet_id" not in service_account_info:
-        st.error("Falta o campo spreadsheet_id nos Streamlit Secrets.")
-        st.stop()
-
-    spreadsheet_id = service_account_info.pop("spreadsheet_id")
-
-    credentials = Credentials.from_service_account_info(
-        service_account_info,
-        scopes=[
-            "https://www.googleapis.com/auth/spreadsheets",
-            "https://www.googleapis.com/auth/drive"
-        ]
-    )
-
-    client = gspread.authorize(credentials)
-    spreadsheet = client.open_by_key(spreadsheet_id)
-
-    try:
-        worksheet = spreadsheet.worksheet(WORKSHEET_NAME)
-    except gspread.WorksheetNotFound:
-        worksheet = spreadsheet.add_worksheet(
-            title=WORKSHEET_NAME,
-            rows=2000,
-            cols=len(HEADERS)
-        )
-        worksheet.append_row(HEADERS)
-
-    current_headers = worksheet.row_values(1)
-
-    if current_headers != HEADERS:
-        worksheet.clear()
-        worksheet.append_row(HEADERS)
-
-    return worksheet
-
-
-def save_rows_to_google_sheets(rows):
-    worksheet = get_worksheet()
-    values = [[row.get(header, "") for header in HEADERS] for row in rows]
-    worksheet.append_rows(values, value_input_option="USER_ENTERED")
+def save_rows_to_supabase(rows):
+    supabase = get_supabase_client()
+    result = supabase.table(SUPABASE_TABLE).insert(rows).execute()
+    return result
 
 
 def scale_question(label, key, low_label=None, high_label=None):
@@ -428,9 +363,9 @@ def main():
             rows.append(row)
 
         try:
-            save_rows_to_google_sheets(rows)
+            save_rows_to_supabase(rows)
             st.session_state.submitted = True
-            st.success("Obrigado. As suas respostas foram registadas com sucesso na Google Sheets.")
+            st.success("Obrigado. As suas respostas foram registadas com sucesso.")
         except Exception as error:
             st.error("Ocorreu um erro ao gravar as respostas. Por favor, contacte o investigador responsável.")
             st.exception(error)

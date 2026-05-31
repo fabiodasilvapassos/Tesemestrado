@@ -1,80 +1,110 @@
-# Questionário Streamlit + Google Sheets
+# Questionário Streamlit + Supabase
 
-Esta versão grava diretamente todas as respostas numa Google Sheet.
-
-## Ficheiros do projeto
+## Ficheiros principais
 
 ```text
 app.py
 scenarios.json
 requirements.txt
-README.md
+supabase_schema.sql
 .streamlit/secrets.example.toml
 assets/scenarios/
 ```
 
-## Como funciona
+## O que muda face à versão Google Sheets
 
-Cada participante gera 16 linhas na folha `responses`, uma por cenário.
+Esta versão grava diretamente na tabela `responses` do Supabase.
 
-A aplicação cria automaticamente a folha `responses` e os cabeçalhos, desde que a Google Sheet exista e esteja partilhada com a Service Account.
+Já não precisa de:
+- Google Cloud
+- Google Sheets API
+- Service Account
+- Credenciais JSON
 
-## Passo 1 — Criar Google Sheet
+## Passo 1 — Criar projeto no Supabase
 
-1. Abre Google Sheets.
-2. Cria uma folha nova.
-3. Copia o ID da folha.
+1. Vai a https://supabase.com
+2. Cria conta gratuita.
+3. Cria um novo projeto.
+4. Guarda a password da base de dados.
 
-Exemplo:
+## Passo 2 — Criar tabela
 
-```text
-https://docs.google.com/spreadsheets/d/1ABCDEF123456789/edit
-```
+1. No Supabase, vai a SQL Editor.
+2. Abre o ficheiro `supabase_schema.sql`.
+3. Copia o conteúdo.
+4. Cola no SQL Editor.
+5. Clica em Run.
 
-O ID é:
-
-```text
-1ABCDEF123456789
-```
-
-## Passo 2 — Criar Service Account
-
-1. Vai a Google Cloud Console.
-2. Cria um projeto.
-3. Ativa a Google Sheets API.
-4. Cria uma Service Account.
-5. Cria uma chave JSON.
-6. Copia os campos do ficheiro JSON.
-
-## Passo 3 — Partilhar a Google Sheet
-
-No ficheiro JSON existe um email do tipo:
+Isto cria a tabela:
 
 ```text
-xxxxx@xxxxx.iam.gserviceaccount.com
+responses
 ```
 
-Na Google Sheet, clica em Partilhar e dá permissão de Editor a esse email.
+## Passo 3 — Obter URL e anon key
+
+No Supabase:
+
+```text
+Project Settings
+↓
+API
+```
+
+Copia:
+
+```text
+Project URL
+anon public key
+```
 
 ## Passo 4 — Configurar Streamlit Secrets
 
 No Streamlit Community Cloud:
 
 ```text
-App → Settings → Secrets
+App
+↓
+Settings
+↓
+Secrets
 ```
 
-Cola o conteúdo baseado no ficheiro:
+Cola:
+
+```toml
+[supabase]
+url = "COLOCAR_SUPABASE_PROJECT_URL"
+key = "COLOCAR_SUPABASE_ANON_KEY"
+```
+
+## Passo 5 — Substituir ficheiros no GitHub
+
+Substitui no teu repositório:
 
 ```text
+app.py
+requirements.txt
+scenarios.json
+```
+
+Adiciona:
+
+```text
+supabase_schema.sql
 .streamlit/secrets.example.toml
 ```
 
-Nunca coloques as credenciais reais no GitHub.
+Mantém:
 
-## Passo 5 — Dashboards
+```text
+assets/scenarios/
+```
 
-Coloca os dashboards em:
+## Passo 6 — Dashboards
+
+Quando tiveres os dashboards, coloca na pasta:
 
 ```text
 assets/scenarios/
@@ -89,11 +119,9 @@ c02.png
 c16.png
 ```
 
-Enquanto não existirem, a aplicação mostra placeholders.
+## Passo 7 — Dados IA
 
-## Passo 6 — Editar dados da IA
-
-Edita:
+Editar em:
 
 ```text
 scenarios.json
@@ -107,14 +135,14 @@ ai_confidence
 ai_factors
 ```
 
-## Deploy no Streamlit
+## Passo 8 — Exportar respostas
 
-No Streamlit Community Cloud:
+No Supabase:
 
 ```text
-Repository: o teu repositório
-Branch: main
-Main file path: app.py
+Table Editor
+↓
+responses
+↓
+Export CSV
 ```
-
-Depois clica em Deploy.
