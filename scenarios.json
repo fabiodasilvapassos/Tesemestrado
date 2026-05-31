@@ -1,0 +1,194 @@
+[
+  {
+    "id": "C01",
+    "label": "Cenário 01",
+    "image": "assets/scenarios/c01.png",
+    "ai_signal": "[INSERIR]",
+    "ai_confidence": "[INSERIR]",
+    "ai_factors": [
+      "[INSERIR]",
+      "[INSERIR]",
+      "[INSERIR]"
+    ]
+  },
+  {
+    "id": "C02",
+    "label": "Cenário 02",
+    "image": "assets/scenarios/c02.png",
+    "ai_signal": "[INSERIR]",
+    "ai_confidence": "[INSERIR]",
+    "ai_factors": [
+      "[INSERIR]",
+      "[INSERIR]",
+      "[INSERIR]"
+    ]
+  },
+  {
+    "id": "C03",
+    "label": "Cenário 03",
+    "image": "assets/scenarios/c03.png",
+    "ai_signal": "[INSERIR]",
+    "ai_confidence": "[INSERIR]",
+    "ai_factors": [
+      "[INSERIR]",
+      "[INSERIR]",
+      "[INSERIR]"
+    ]
+  },
+  {
+    "id": "C04",
+    "label": "Cenário 04",
+    "image": "assets/scenarios/c04.png",
+    "ai_signal": "[INSERIR]",
+    "ai_confidence": "[INSERIR]",
+    "ai_factors": [
+      "[INSERIR]",
+      "[INSERIR]",
+      "[INSERIR]"
+    ]
+  },
+  {
+    "id": "C05",
+    "label": "Cenário 05",
+    "image": "assets/scenarios/c05.png",
+    "ai_signal": "[INSERIR]",
+    "ai_confidence": "[INSERIR]",
+    "ai_factors": [
+      "[INSERIR]",
+      "[INSERIR]",
+      "[INSERIR]"
+    ]
+  },
+  {
+    "id": "C06",
+    "label": "Cenário 06",
+    "image": "assets/scenarios/c06.png",
+    "ai_signal": "[INSERIR]",
+    "ai_confidence": "[INSERIR]",
+    "ai_factors": [
+      "[INSERIR]",
+      "[INSERIR]",
+      "[INSERIR]"
+    ]
+  },
+  {
+    "id": "C07",
+    "label": "Cenário 07",
+    "image": "assets/scenarios/c07.png",
+    "ai_signal": "[INSERIR]",
+    "ai_confidence": "[INSERIR]",
+    "ai_factors": [
+      "[INSERIR]",
+      "[INSERIR]",
+      "[INSERIR]"
+    ]
+  },
+  {
+    "id": "C08",
+    "label": "Cenário 08",
+    "image": "assets/scenarios/c08.png",
+    "ai_signal": "[INSERIR]",
+    "ai_confidence": "[INSERIR]",
+    "ai_factors": [
+      "[INSERIR]",
+      "[INSERIR]",
+      "[INSERIR]"
+    ]
+  },
+  {
+    "id": "C09",
+    "label": "Cenário 09",
+    "image": "assets/scenarios/c09.png",
+    "ai_signal": "[INSERIR]",
+    "ai_confidence": "[INSERIR]",
+    "ai_factors": [
+      "[INSERIR]",
+      "[INSERIR]",
+      "[INSERIR]"
+    ]
+  },
+  {
+    "id": "C10",
+    "label": "Cenário 10",
+    "image": "assets/scenarios/c10.png",
+    "ai_signal": "[INSERIR]",
+    "ai_confidence": "[INSERIR]",
+    "ai_factors": [
+      "[INSERIR]",
+      "[INSERIR]",
+      "[INSERIR]"
+    ]
+  },
+  {
+    "id": "C11",
+    "label": "Cenário 11",
+    "image": "assets/scenarios/c11.png",
+    "ai_signal": "[INSERIR]",
+    "ai_confidence": "[INSERIR]",
+    "ai_factors": [
+      "[INSERIR]",
+      "[INSERIR]",
+      "[INSERIR]"
+    ]
+  },
+  {
+    "id": "C12",
+    "label": "Cenário 12",
+    "image": "assets/scenarios/c12.png",
+    "ai_signal": "[INSERIR]",
+    "ai_confidence": "[INSERIR]",
+    "ai_factors": [
+      "[INSERIR]",
+      "[INSERIR]",
+      "[INSERIR]"
+    ]
+  },
+  {
+    "id": "C13",
+    "label": "Cenário 13",
+    "image": "assets/scenarios/c13.png",
+    "ai_signal": "[INSERIR]",
+    "ai_confidence": "[INSERIR]",
+    "ai_factors": [
+      "[INSERIR]",
+      "[INSERIR]",
+      "[INSERIR]"
+    ]
+  },
+  {
+    "id": "C14",
+    "label": "Cenário 14",
+    "image": "assets/scenarios/c14.png",
+    "ai_signal": "[INSERIR]",
+    "ai_confidence": "[INSERIR]",
+    "ai_factors": [
+      "[INSERIR]",
+      "[INSERIR]",
+      "[INSERIR]"
+    ]
+  },
+  {
+    "id": "C15",
+    "label": "Cenário 15",
+    "image": "assets/scenarios/c15.png",
+    "ai_signal": "[INSERIR]",
+    "ai_confidence": "[INSERIR]",
+    "ai_factors": [
+      "[INSERIR]",
+      "[INSERIR]",
+      "[INSERIR]"
+    ]
+  },
+  {
+    "id": "C16",
+    "label": "Cenário 16",
+    "image": "assets/scenarios/c16.png",
+    "ai_signal": "[INSERIR]",
+    "ai_confidence": "[INSERIR]",
+    "ai_factors": [
+      "[INSERIR]",
+      "[INSERIR]",
+      "[INSERIR]"
+    ]
+  }
+]
