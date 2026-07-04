@@ -23,7 +23,9 @@ create table if not exists responses (
 
     ai_signal text,
     ai_confidence text,
+    ai_summary text,
     ai_factors text,
+    market_context text,
 
     ia_agreement integer,
     ia_trust integer,
