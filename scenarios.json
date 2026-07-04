@@ -47,7 +47,7 @@
 
   "ai_confidence": "Moderada",
 
- "ai_summary": "O modelo identifica sinais compatíveis com uma possível recuperação após a correção observada nas sessões mais recentes. Apesar do enfraquecimento do momentum relativamente aos máximos anteriores, a combinação dos indicadores utilizados sugere uma probabilidade moderada de retoma do movimento positivo na próxima sessão."
+ "ai_summary": "O modelo identifica sinais compatíveis com uma possível recuperação após a correção observada nas sessões mais recentes. Apesar do enfraquecimento do momentum relativamente aos máximos anteriores, a combinação dos indicadores utilizados sugere uma probabilidade moderada de retoma do movimento positivo na próxima sessão.",
   "ai_factors": [
     "Momentum (RSI)",
     "Posição do preço relativamente à tendência de médio prazo",
@@ -65,7 +65,7 @@
 
   "ai_confidence": "Moderada",
 
-  "ai_summary": "O modelo identifica sinais compatíveis com uma possível estabilização após um período prolongado de pressão vendedora. Apesar da estrutura técnica permanecer frágil e do contexto macroeconómico continuar desafiante, a combinação dos indicadores utilizados sugere uma probabilidade moderada de recuperação na próxima sessão."
+  "ai_summary": "O modelo identifica sinais compatíveis com uma possível estabilização após um período prolongado de pressão vendedora. Apesar da estrutura técnica permanecer frágil e do contexto macroeconómico continuar desafiante, a combinação dos indicadores utilizados sugere uma probabilidade moderada de recuperação na próxima sessão.",
   "ai_factors": [
     "Posição do preço relativamente à tendência de longo prazo",
     "Momentum (RSI)",
@@ -91,7 +91,7 @@
   "Posição do preço relativamente à tendência de longo prazo",
   "Volatilidade do mercado"
 ]
-  ]
+
 },
   {
   "id": "C06",
@@ -112,7 +112,7 @@
   "Volume relativo",
   "Volatilidade do mercado"
 ]
-  ]
+  
 },
   {
   "id": "C07",
@@ -133,7 +133,7 @@
 "Posição do preço relativamente à tendência de longo prazo",
 "Volatilidade do mercado"
 ]
-  ]
+  
 },
 {
   "id": "C08",
@@ -146,8 +146,7 @@
 
   "ai_confidence": "Moderada",
 
-  "ai_summary": "O modelo identifica um conjunto consistente de sinais compatíveis com a continuação da pressão vendedora na próxima sessão. A combinação entre deterioração da tendência, enfraquecimento do momentum e aumento da incerteza favorece um posicionamento defensivo, sugerindo uma probabilidade elevada de manutenção da dinâmica descendente de curto prazo.",
-
+  "ai_summary": "O modelo identifica sinais mistos, sem evidência suficientemente forte para antecipar um movimento direcional consistente na próxima sessão. Apesar da deterioração técnica observada, a combinação dos indicadores sugere prudência e favorece uma leitura neutra no curto prazo.",
   "ai_factors": [
     "Tendência estrutural (médias móveis)",
     "Momentum (RSI)",
@@ -166,8 +165,7 @@
 
   "ai_confidence": "Baixa",
 
-  "ai_summary": "O modelo identifica sinais consistentes com a continuação da pressão vendedora no curto prazo. A deterioração da tendência, associada ao enfraquecimento do momentum e ao aumento do risco observado, sugere uma probabilidade elevada de manutenção da dinâmica descendente na sessão seguinte.",
-
+  "ai_summary": "O modelo identifica sinais compatíveis com a continuação da pressão vendedora no curto prazo. A deterioração da tendência, associada ao enfraquecimento do momentum e ao aumento do risco observado, favorece um posicionamento defensivo, embora a baixa confiança do modelo recomende prudência na interpretação do sinal.",
 "ai_factors": [
   "Posição do preço relativamente à média móvel de longo prazo",
   "Momentum (RSI)",
@@ -204,7 +202,7 @@
 
   "ai_signal": "Long",
 
-  "ai_confidence": "Fraco",
+  "ai_confidence": "Baixa",
 
   "ai_summary": "O modelo identifica sinais compatíveis com a continuação da tendência positiva no curto prazo. A combinação entre uma estrutura técnica favorável, momentum positivo e manutenção da força compradora sugere uma probabilidade acrescida de continuação do movimento ascendente, embora o elevado otimismo do mercado justifique alguma prudência na interpretação do sinal.",
 
