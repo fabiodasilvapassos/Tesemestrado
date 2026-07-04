@@ -765,6 +765,7 @@ def save_final_answers(updates):
     next_page()
 
 
+
 def render_part_4_general():
     st.header("Parte 4 — Avaliação geral")
 
@@ -775,33 +776,25 @@ def render_part_4_general():
         "muito elevada dificuldade",
     )
 
-    ai_revision_frequency = radio_question(
-        "2. Frequência com que a IA levou à revisão de decisões:",
-        REVISION_FREQUENCY,
-        key="ai_revision_frequency",
-        index=None,
-    )
-
     perceived_correctness = radio_question(
-        "3. Em quantos cenários acredita ter tomado a decisão correta?",
+        "2. Em quantos cenários acredita ter tomado a decisão correta?",
         PERCEIVED_CORRECTNESS,
         key="perceived_correctness",
         index=None,
     )
 
     real_use_willingness = scale_question(
-        "4. Disponibilidade para utilização de IA em contexto real:",
+        "3. Disponibilidade para utilização de IA em contexto real:",
         "real_use_willingness",
         "nunca utilizaria",
         "utilizaria sempre",
     )
 
-    can_advance = ai_revision_frequency is not None and perceived_correctness is not None
+    can_advance = perceived_correctness is not None
     if st.button("Avançar", type="primary", use_container_width=True, disabled=not can_advance):
         save_final_answers(
             {
                 "general_difficulty": general_difficulty,
-                "ai_revision_frequency": ai_revision_frequency,
                 "perceived_correctness": perceived_correctness,
                 "real_use_willingness": real_use_willingness,
             }
@@ -819,39 +812,18 @@ def render_part_5_utility():
         index=None,
     )
 
-    ai_usefulness_reason = radio_question(
-        "2. Qual o principal motivo dessa avaliação?",
-        AI_USEFULNESS_REASONS,
-        key="ai_usefulness_reason",
+    adjust_ai_reason = radio_question(
+        "2. Quando ajustou ou não seguiu a recomendação da IA, qual foi normalmente o principal motivo?",
+        ADJUST_REASONS,
+        key="adjust_ai_reason",
         index=None,
     )
 
-    adjust_ai_frequency = radio_question(
-        "3. Sentiu necessidade de ajustar as recomendações da IA?",
-        ADJUST_FREQUENCY,
-        key="adjust_ai_frequency",
-        index=None,
-    )
-
-    adjust_ai_reason = None
-    if adjust_ai_frequency and adjust_ai_frequency != "Nunca":
-        adjust_ai_reason = radio_question(
-            "Se sim, qual foi o principal motivo?",
-            ADJUST_REASONS,
-            key="adjust_ai_reason",
-            index=None,
-        )
-
-    can_advance = ai_usefulness and ai_usefulness_reason and adjust_ai_frequency
-    if adjust_ai_frequency != "Nunca":
-        can_advance = can_advance and adjust_ai_reason
-
+    can_advance = ai_usefulness is not None and adjust_ai_reason is not None
     if st.button("Avançar", type="primary", use_container_width=True, disabled=not can_advance):
         save_final_answers(
             {
                 "ai_usefulness": ai_usefulness,
-                "ai_usefulness_reason": ai_usefulness_reason,
-                "adjust_ai_frequency": adjust_ai_frequency,
                 "adjust_ai_reason": adjust_ai_reason,
             }
         )
@@ -862,43 +834,26 @@ def render_part_5_explainability():
     st.subheader("Explicabilidade da IA")
 
     explanation_clarity = scale_question(
-        "1. Como avalia a clareza das explicações fornecidas pela IA?",
+        "1. As explicações da IA foram suficientemente claras para compreender a recomendação?",
         "explanation_clarity",
         "muito difícil de compreender",
         "muito clara e intuitiva",
     )
 
-    explanation_understanding = scale_question(
-        "2. Em que medida essas explicações ajudaram a compreender a recomendação?",
-        "explanation_understanding",
-        "não ajudou nada",
-        "permitiu compreender totalmente",
-    )
-
     explanation_confidence_effect = scale_question(
-        "3. As explicações aumentaram a sua confiança no modelo?",
+        "2. As explicações aumentaram a sua confiança no modelo?",
         "explanation_confidence_effect",
         "reduziu significativamente a confiança",
         "aumentou significativamente a confiança",
     )
 
-    explanation_limitations = radio_question(
-        "4. Identificou limitações nas explicações?",
-        EXPLANATION_LIMITATIONS,
-        key="explanation_limitations",
-        index=None,
-    )
-
-    if st.button("Avançar", type="primary", use_container_width=True, disabled=not explanation_limitations):
+    if st.button("Avançar", type="primary", use_container_width=True):
         save_final_answers(
             {
                 "explanation_clarity": explanation_clarity,
-                "explanation_understanding": explanation_understanding,
                 "explanation_confidence_effect": explanation_confidence_effect,
-                "explanation_limitations": explanation_limitations,
             }
         )
-
 
 def render_part_5_biases():
     st.header("Parte 5 — Avaliação complementar")
@@ -941,51 +896,35 @@ def render_part_5_biases():
         )
 
 
+
 def render_part_5_trust():
     st.header("Parte 5 — Avaliação complementar")
     st.subheader("Confiança e Aceitação")
 
-    rejected_ai = radio_question(
-        "1. Houve situações em que rejeitou a IA?",
-        ["Sim", "Não"],
-        key="rejected_ai",
-        horizontal=True,
+    st.info(
+        "A frequência de revisão das decisões, a rejeição da IA e a alteração do nível de confiança "
+        "são inferidas automaticamente a partir das respostas dadas nos cenários."
+    )
+
+    rejection_reason = radio_question(
+        "Quando decidiu não seguir a recomendação da IA, qual foi normalmente o principal motivo?",
+        REJECTION_REASONS,
+        key="rejection_reason",
         index=None,
     )
 
-    rejection_reason = None
-    if rejected_ai == "Sim":
-        rejection_reason = radio_question(
-            "Se sim, porquê?",
-            REJECTION_REASONS,
-            key="rejection_reason",
-            index=None,
-        )
-
-    self_confidence_change = radio_question(
-        "2. O modelo híbrido alterou o seu nível de confiança no próprio julgamento?",
-        SELF_CONFIDENCE_CHANGE,
-        key="self_confidence_change",
-        index=None,
-    )
-
-    can_advance = rejected_ai is not None and self_confidence_change is not None
-    if rejected_ai == "Sim":
-        can_advance = can_advance and rejection_reason is not None
-
+    can_advance = rejection_reason is not None
     if st.button("Avançar", type="primary", use_container_width=True, disabled=not can_advance):
         save_final_answers(
             {
-                "rejected_ai": rejected_ai,
                 "rejection_reason": rejection_reason,
-                "self_confidence_change": self_confidence_change,
             }
         )
 
 
 def render_part_5_viability():
     st.header("Parte 5 — Avaliação complementar")
-    st.subheader("Viabilidade e Barreiras")
+    st.subheader("Viabilidade e Melhorias")
 
     hybrid_viability = scale_question(
         "1. Considera o modelo híbrido viável em contexto real?",
@@ -1000,23 +939,14 @@ def render_part_5_viability():
         key="needed_improvements",
     )
 
-    adoption_barriers = radio_question(
-        "3. Que fatores podem constituir barreiras à adoção?",
-        ADOPTION_BARRIERS,
-        key="adoption_barriers",
-        index=None,
-    )
-
-    can_advance = len(needed_improvements) > 0 and adoption_barriers is not None
+    can_advance = len(needed_improvements) > 0
     if st.button("Avançar", type="primary", use_container_width=True, disabled=not can_advance):
         save_final_answers(
             {
                 "hybrid_viability": hybrid_viability,
                 "needed_improvements": "; ".join(needed_improvements),
-                "adoption_barriers": adoption_barriers,
             }
         )
-
 
 def render_part_5_final():
     st.header("Parte 5 — Avaliação complementar")
@@ -1053,6 +983,164 @@ def render_part_5_final():
     if st.button("Submeter respostas", type="primary", use_container_width=True, disabled=not can_submit):
         st.session_state.final_answers.update(
             {
+                "hybrid_value": hybrid_value,
+                "hybrid_risk": hybrid_risk,
+                "recommendation": recommendation,
+                "final_comment": final_comment,
+            }
+        )
+        submit_all_answers()
+
+
+
+def render_final_questions():
+    st.header("Parte final — Avaliação geral do modelo híbrido")
+
+    st.subheader("Avaliação geral")
+    general_difficulty = scale_question(
+        "1. Como classifica a dificuldade geral dos cenários apresentados?",
+        "general_difficulty",
+        "muito baixa dificuldade",
+        "muito elevada dificuldade",
+    )
+
+    perceived_correctness = radio_question(
+        "2. Em quantos cenários acredita ter tomado a decisão correta?",
+        PERCEIVED_CORRECTNESS,
+        key="perceived_correctness",
+        index=None,
+    )
+
+    real_use_willingness = scale_question(
+        "3. Disponibilidade para utilização de IA em contexto real:",
+        "real_use_willingness",
+        "nunca utilizaria",
+        "utilizaria sempre",
+    )
+
+    st.subheader("Utilidade e explicabilidade")
+    ai_usefulness = radio_question(
+        "4. De forma geral, como avalia a utilidade das recomendações da IA?",
+        AI_USEFULNESS_OPTIONS,
+        key="ai_usefulness",
+        index=None,
+    )
+
+    adjust_ai_reason = radio_question(
+        "5. Quando ajustou ou não seguiu a recomendação da IA, qual foi normalmente o principal motivo?",
+        ADJUST_REASONS,
+        key="adjust_ai_reason",
+        index=None,
+    )
+
+    explanation_clarity = scale_question(
+        "6. As explicações da IA foram suficientemente claras para compreender a recomendação?",
+        "explanation_clarity",
+        "muito difícil de compreender",
+        "muito clara e intuitiva",
+    )
+
+    explanation_confidence_effect = scale_question(
+        "7. As explicações aumentaram a sua confiança no modelo?",
+        "explanation_confidence_effect",
+        "reduziu significativamente a confiança",
+        "aumentou significativamente a confiança",
+    )
+
+    st.subheader("Vieses e mitigação")
+    bias_identification = radio_question(
+        "8. A interação com a IA ajudou-o(a) a identificar possíveis enviesamentos nas suas decisões?",
+        ["Sim", "Não"],
+        key="bias_identification",
+        horizontal=True,
+        index=None,
+    )
+
+    bias_types_identified = []
+    if bias_identification == "Sim":
+        bias_types_identified = st.multiselect(
+            "9. Principais vieses identificados:",
+            BIAS_TYPES,
+            key="bias_types_identified",
+        )
+
+    bias_reduction = scale_question(
+        "10. O modelo híbrido contribuiu para reduzir enviesamentos?",
+        "bias_reduction",
+        "nenhuma redução",
+        "redução muito significativa",
+    )
+
+    st.subheader("Viabilidade e avaliação final")
+    hybrid_viability = scale_question(
+        "11. Considera o modelo híbrido viável em contexto real?",
+        "hybrid_viability",
+        "totalmente inviável",
+        "totalmente viável",
+    )
+
+    needed_improvements = st.multiselect(
+        "12. Que melhorias considera necessárias?",
+        NEEDED_IMPROVEMENTS,
+        key="needed_improvements",
+    )
+
+    hybrid_value = radio_question(
+        "13. Qual o principal valor do modelo híbrido?",
+        HYBRID_VALUE,
+        key="hybrid_value",
+        index=None,
+    )
+
+    hybrid_risk = radio_question(
+        "14. Quais os principais riscos associados?",
+        HYBRID_RISKS,
+        key="hybrid_risk",
+        index=None,
+    )
+
+    recommendation = radio_question(
+        "15. Recomendaria este sistema a outros analistas?",
+        RECOMMENDATION_OPTIONS,
+        key="recommendation",
+        index=None,
+    )
+
+    final_comment = st.text_area(
+        "16. Comentário adicional (opcional)",
+        key="final_comment",
+        placeholder="Poderá partilhar a sua opinião sobre utilidade, limitações, influência na decisão ou sugestões de melhoria.",
+    )
+
+    can_submit = (
+        perceived_correctness is not None
+        and ai_usefulness is not None
+        and adjust_ai_reason is not None
+        and bias_identification is not None
+        and len(needed_improvements) > 0
+        and hybrid_value is not None
+        and hybrid_risk is not None
+        and recommendation is not None
+    )
+
+    if bias_identification == "Sim":
+        can_submit = can_submit and len(bias_types_identified) > 0
+
+    if st.button("Submeter respostas", type="primary", use_container_width=True, disabled=not can_submit):
+        st.session_state.final_answers.update(
+            {
+                "general_difficulty": general_difficulty,
+                "perceived_correctness": perceived_correctness,
+                "real_use_willingness": real_use_willingness,
+                "ai_usefulness": ai_usefulness,
+                "adjust_ai_reason": adjust_ai_reason,
+                "explanation_clarity": explanation_clarity,
+                "explanation_confidence_effect": explanation_confidence_effect,
+                "bias_identification": bias_identification,
+                "bias_types_identified": "; ".join(bias_types_identified),
+                "bias_reduction": bias_reduction,
+                "hybrid_viability": hybrid_viability,
+                "needed_improvements": "; ".join(needed_improvements),
                 "hybrid_value": hybrid_value,
                 "hybrid_risk": hybrid_risk,
                 "recommendation": recommendation,
@@ -1130,6 +1218,7 @@ def submit_all_answers():
 
 
 
+
 def main():
     init_state()
 
@@ -1147,7 +1236,7 @@ def main():
     ]
 
     scenarios_count = len(scenarios)
-    final_sections = 7
+    final_sections = 1
     total_pages = 1 + scenarios_count + final_sections
 
     show_progress(total_pages, scenarios_count)
@@ -1165,19 +1254,7 @@ def main():
         final_page = page - scenarios_count
 
         if final_page == 1:
-            render_part_4_general()
-        elif final_page == 2:
-            render_part_5_utility()
-        elif final_page == 3:
-            render_part_5_explainability()
-        elif final_page == 4:
-            render_part_5_biases()
-        elif final_page == 5:
-            render_part_5_trust()
-        elif final_page == 6:
-            render_part_5_viability()
-        elif final_page == 7:
-            render_part_5_final()
+            render_final_questions()
         else:
             st.success("Questionário concluído.")
 
