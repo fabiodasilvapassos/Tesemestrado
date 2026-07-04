@@ -1261,18 +1261,22 @@ def main():
         st.success("As suas respostas já foram registadas. Obrigado pela participação.")
         return
 
-    active_ids = SCENARIO_GROUPS.get(st.session_state.scenario_group)
+    if st.session_state.page == 0:
+        scenarios = []
+        scenarios_count = 8
+    else:
+        active_ids = SCENARIO_GROUPS.get(st.session_state.scenario_group)
 
-    if not active_ids:
-        st.error("Grupo de cenários não definido. Por favor, reinicie o questionário.")
-        st.stop()
+        if not active_ids:
+            st.error("Grupo de cenários não definido. Por favor, reinicie o questionário.")
+            st.stop()
 
-    scenarios = [
-        s for s in load_scenarios()
-        if s["id"] in active_ids
-    ]
+        scenarios = [
+            s for s in load_scenarios()
+            if s["id"] in active_ids
+        ]
 
-    scenarios_count = len(scenarios)
+        scenarios_count = len(scenarios)
     final_sections = 1
     total_pages = 1 + scenarios_count + final_sections
 
