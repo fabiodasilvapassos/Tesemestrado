@@ -19,12 +19,20 @@ ASSETS_DIR = Path("assets/scenarios")
 SUPABASE_TABLE = "responses"
 USE_REDUCED_VERSION = True
 
-ACTIVE_SCENARIOS = [
-    "C01", "C03",
-    "C05", "C07",
-    "C09", "C11",
-    "C13", "C16",
-]
+SCENARIO_GROUPS = {
+    "A": [
+        "C01", "C03",
+        "C05", "C07",
+        "C09", "C11",
+        "C13", "C16",
+    ],
+    "B": [
+        "C02", "C04",
+        "C06", "C08",
+        "C10", "C12",
+        "C14", "C15",
+    ],
+}
 
 DECISIONS = ["Long", "Neutro", "Short"]
 SCALE_MIN = 1
@@ -164,6 +172,18 @@ def get_supabase_client() -> Client:
 
     return create_client(url, key)
 
+
+def assign_scenario_group():
+    """Atribui automaticamente o grupo A/B através da função RPC do Supabase."""
+    supabase = get_supabase_client()
+    result = supabase.rpc("assign_scenario_group").execute()
+
+    if result.data not in ("A", "B"):
+        st.error("Erro ao atribuir grupo de cenários. Resultado inesperado do Supabase.")
+        st.stop()
+
+    return result.data
+
 def scroll_to_top_anchor():
     st.markdown(
         """
@@ -258,6 +278,7 @@ def init_state():
         "scenario_timers": {},
         "block_started_at": {},
         "force_scroll_top": False,
+        "scenario_group": None,
     }
     for key, value in defaults.items():
         if key not in st.session_state:
@@ -473,7 +494,7 @@ def render_initial_page():
     st.header("Parte 3 — Análise de cenários")
     st.markdown(
         f"""
-        Ser-lhe-ão apresentados **{8 if USE_REDUCED_VERSION else 16} cenários financeiros**, cada um representado por um dashboard com informação de mercado: preço, tendência, RSI, volume e volatilidade.
+        Ser-lhe-ão apresentados **8 cenários financeiros**, cada um representado por um dashboard com informação de mercado: preço, tendência, RSI, volume e volatilidade.
 
         O objetivo é tomar uma decisão para a **próxima sessão de mercado**, com base exclusivamente na informação disponível.
 
@@ -493,6 +514,9 @@ def render_initial_page():
         if consentimento != "Sim, aceito participar":
             st.warning("Para avançar é necessário aceitar participar voluntariamente no estudo.")
             st.stop()
+
+        if st.session_state.scenario_group is None:
+            st.session_state.scenario_group = assign_scenario_group()
 
         st.session_state.profile.update(
             {
@@ -1151,9 +1175,15 @@ def render_final_questions():
 
 
 def submit_all_answers():
+    active_ids = SCENARIO_GROUPS.get(st.session_state.scenario_group)
+
+    if not active_ids:
+        st.error("Grupo de cenários não definido. Por favor, reinicie o questionário.")
+        st.stop()
+
     scenarios = [
         s for s in load_scenarios()
-        if (not USE_REDUCED_VERSION) or (s["id"] in ACTIVE_SCENARIOS)
+        if s["id"] in active_ids
     ]
     finished_at = now_iso()
     rows = []
@@ -1175,6 +1205,7 @@ def submit_all_answers():
             "perfil_05": st.session_state.profile.get("perfil_05"),
             "scenario_id": answer.get("scenario_id", sid),
             "scenario_label": answer.get("scenario_label", scenario.get("label")),
+            "scenario_group": st.session_state.scenario_group,
             "hum_decision_initial": answer.get("hum_decision_initial"),
             "hum_confidence_initial": answer.get("hum_confidence_initial"),
             "hum_main_factor": answer.get("hum_main_factor"),
@@ -1230,9 +1261,15 @@ def main():
         st.success("As suas respostas já foram registadas. Obrigado pela participação.")
         return
 
+    active_ids = SCENARIO_GROUPS.get(st.session_state.scenario_group)
+
+    if not active_ids:
+        st.error("Grupo de cenários não definido. Por favor, reinicie o questionário.")
+        st.stop()
+
     scenarios = [
         s for s in load_scenarios()
-        if (not USE_REDUCED_VERSION) or (s["id"] in ACTIVE_SCENARIOS)
+        if s["id"] in active_ids
     ]
 
     scenarios_count = len(scenarios)
