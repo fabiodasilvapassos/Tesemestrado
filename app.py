@@ -185,14 +185,36 @@ def assign_scenario_group():
     return result.data
 
 def scroll_to_top_anchor():
-    st.markdown(
+    components.html(
         """
-        <div id="top"></div>
         <script>
-            window.location.hash = "#top";
+        setTimeout(function() {
+            try {
+                window.parent.scrollTo(0, 0);
+
+                const doc = window.parent.document;
+
+                const main = doc.querySelector('section.main');
+                if (main){
+                    main.scrollTop = 0;
+                }
+
+                const block = doc.querySelector('.block-container');
+                if (block){
+                    block.scrollIntoView({behavior:'instant', block:'start'});
+                }
+
+                const body = doc.querySelector('body');
+                if (body){
+                    body.scrollTop = 0;
+                }
+
+                document.documentElement.scrollTop = 0;
+            } catch(e){}
+        },300);
         </script>
         """,
-        unsafe_allow_html=True,
+        height=0,
     )
 @st.cache_data
 def load_scenarios():
