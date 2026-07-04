@@ -182,6 +182,36 @@ def load_scenarios():
         "ai_factors",
     ]
 
+    USE_REDUCED_VERSION = True
+
+SCENARIO_SETS = {
+    "full": [
+        "C01", "C02", "C03", "C04",
+        "C05", "C06", "C07", "C08",
+        "C09", "C10", "C11", "C12",
+        "C13", "C14", "C15", "C16",
+    ],
+    "reduced": [
+        "C01", "C03",
+        "C05", "C07",
+        "C09", "C11",
+        "C13", "C16",
+    ],
+}
+
+
+def get_active_scenarios():
+    scenarios = load_scenarios()
+    active_set = "reduced" if USE_REDUCED_VERSION else "full"
+    active_ids = set(SCENARIO_SETS[active_set])
+
+    filtered = [s for s in scenarios if s["id"] in active_ids]
+
+    order = {sid: idx for idx, sid in enumerate(SCENARIO_SETS[active_set])}
+    filtered.sort(key=lambda s: order.get(s["id"], 999))
+
+    return filtered
+
     valid_signals = {"Long", "Neutro", "Short"}
     valid_confidence = {"Baixa", "Moderada", "Elevada"}
 
