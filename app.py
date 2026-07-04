@@ -14,6 +14,7 @@ st.set_page_config(
 )
 
 SCENARIOS_FILE = "scenarios.json"
+ASSETS_DIR = Path("assets/scenarios")
 SUPABASE_TABLE = "responses"
 
 DECISIONS = ["Long", "Neutro", "Short"]
@@ -334,12 +335,14 @@ def finish_scenario_timer(sid):
 
 
 def render_dashboard(scenario):
-    image_path = Path(scenario.get("image", ""))
+    image_name = scenario.get("image", "")
+    image_name = Path(image_name).name
+    image_path = ASSETS_DIR / image_name
+
     if image_path.exists():
         st.image(str(image_path), use_container_width=True)
     else:
-        st.info(f"[INSERIR DASHBOARD: {scenario.get('image', 'imagem não definida')}]")
-
+        st.error(f"Imagem não encontrada: {image_path}")
 
 def render_summary_box(title, rows):
     st.markdown(f"### {title}")
