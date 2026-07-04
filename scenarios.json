@@ -93,7 +93,7 @@
     "Volatilidade do mercado"
   ]
 },
-  {{
+  {
   "id": "C06",
   "label": "Cenário 06",
   "image": "images/c06.png",
@@ -162,7 +162,7 @@
 
   "ai_signal": "Short",
 
-  "ai_confidence": "Média",
+  "ai_confidence": "Moderada",
 
   "ai_summary": "O modelo identifica sinais consistentes com a continuação da pressão vendedora no curto prazo. A deterioração da tendência, associada ao enfraquecimento do momentum e ao aumento do risco observado, sugere uma probabilidade elevada de manutenção da dinâmica descendente na sessão seguinte.",
 
@@ -260,7 +260,7 @@
 
   "market_context": "Os mercados encontravam-se num contexto de inflação elevada e persistente, aumentando a atenção dos investidores para empresas com capacidade de preservar margens através da repercussão do aumento dos custos nos preços. Apesar da incerteza macroeconómica, alguns ativos defensivos evidenciavam maior resiliência relativa.",
 
-  "ai_signal": "Neutral",
+  "ai_signal": "Neutro",
 
   "ai_confidence": "Baixa",
 
@@ -280,7 +280,7 @@
 
   "market_context": "Os mercados apresentavam um ambiente relativamente estável, caracterizado por menor intensidade direcional e volatilidade moderada. Neste contexto, ativos defensivos tendiam a evidenciar um comportamento mais consistente, permitindo avaliar decisões em cenários onde os sinais de mercado são menos extremos.",
 
-  "ai_signal": "Neutral",
+  "ai_signal": "Neutro",
 
   "ai_confidence": "Moderada",
 
