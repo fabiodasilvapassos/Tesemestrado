@@ -43,12 +43,11 @@
 
   "market_context": "O mercado atravessava um período de elevada incerteza após o colapso de várias instituições financeiras, aumentando os receios de contágio ao sistema bancário. Embora as autoridades tenham adotado medidas para reforçar a estabilidade financeira, os investidores permaneciam divididos entre o risco de novas quedas e a possibilidade de recuperação dos mercados caso a confiança fosse restabelecida.",
 
-  "ai_signal": "Short",
+  "ai_signal": "Long",
 
   "ai_confidence": "Moderada",
 
-  "ai_summary": "O modelo identifica sinais de enfraquecimento da recuperação observada nas sessões anteriores. A perda gradual de momentum, acompanhada por uma correção do preço após máximos recentes, sugere uma probabilidade moderada de continuação do movimento descendente na próxima sessão.",
-
+ "ai_summary": "O modelo identifica sinais compatíveis com uma possível recuperação após a correção observada nas sessões mais recentes. Apesar do enfraquecimento do momentum relativamente aos máximos anteriores, a combinação dos indicadores utilizados sugere uma probabilidade moderada de retoma do movimento positivo na próxima sessão."
   "ai_factors": [
     "Momentum (RSI)",
     "Posição do preço relativamente à tendência de médio prazo",
@@ -62,12 +61,11 @@
 
   "market_context": "O mercado encontrava-se sob pressão devido à manutenção de taxas de juro elevadas e à persistência de incerteza quanto à evolução da política monetária. O sentimento dos investidores permanecia cauteloso, refletindo preocupações com o impacto das condições financeiras restritivas sobre o crescimento económico e os resultados das empresas.",
 
-  "ai_signal": "Short",
+  "ai_signal": "Long",
 
-  "ai_confidence": "Elevada",
+  "ai_confidence": "Moderada",
 
-  "ai_summary": "O modelo identifica uma estrutura técnica predominantemente descendente, caracterizada por perda gradual de momentum e manutenção do preço abaixo das principais referências de tendência. Apesar de alguns sinais pontuais de estabilização da atividade transacional, o conjunto dos indicadores continua a favorecer uma probabilidade elevada de continuação da pressão vendedora na próxima sessão.",
-
+  "ai_summary": "O modelo identifica sinais compatíveis com uma possível estabilização após um período prolongado de pressão vendedora. Apesar da estrutura técnica permanecer frágil e do contexto macroeconómico continuar desafiante, a combinação dos indicadores utilizados sugere uma probabilidade moderada de recuperação na próxima sessão."
   "ai_factors": [
     "Posição do preço relativamente à tendência de longo prazo",
     "Momentum (RSI)",
@@ -87,10 +85,12 @@
 
   "ai_summary": "O modelo identifica sinais compatíveis com uma possível continuação da recuperação após a correção recente. Embora o preço tenha registado uma queda acentuada nas últimas observações e a volatilidade permaneça elevada, a combinação dos indicadores considerados pelo modelo sugere uma probabilidade moderada de recuperação na próxima sessão de mercado.",
 
-  "ai_factors": [
-    "Momentum (RSI)",
-    "Volume relativo",
-    "Volatilidade do mercado"
+ "ai_factors": [
+  "Momentum (RSI)",
+  "Volume relativo",
+  "Posição do preço relativamente à tendência de longo prazo",
+  "Volatilidade do mercado"
+]
   ]
 },
   {
@@ -106,11 +106,12 @@
 
   "ai_summary": "O modelo identifica sinais compatíveis com uma possível recuperação técnica após uma fase prolongada de pressão vendedora. Apesar da deterioração recente do preço e da persistência de um contexto macroeconómico desfavorável, alguns indicadores sugerem que a intensidade da tendência descendente poderá estar a diminuir, aumentando moderadamente a probabilidade de recuperação na próxima sessão.",
 
-  "ai_factors": [
-    "Momentum (RSI)",
-    "Volume relativo",
-    "Volatilidade do mercado",
-    "Posição do preço relativamente à tendência de longo prazo"
+"ai_factors": [
+  "Momentum (RSI)",
+  "Posição do preço relativamente à tendência de longo prazo",
+  "Volume relativo",
+  "Volatilidade do mercado"
+]
   ]
 },
   {
@@ -127,10 +128,11 @@
   "ai_summary": "O modelo identifica sinais compatíveis com uma possível estabilização após um período de forte pressão vendedora. Embora o contexto permaneça caracterizado por elevada incerteza e aversão ao risco, alguns indicadores sugerem que a intensidade do movimento descendente poderá estar a diminuir, aumentando moderadamente a probabilidade de recuperação na próxima sessão.",
 
   "ai_factors": [
-    "Momentum (RSI)",
-    "Volume relativo",
-    "Volatilidade do mercado",
-    "Posição do preço relativamente à tendência de longo prazo"
+"Momentum (RSI)",
+"Volume relativo",
+"Posição do preço relativamente à tendência de longo prazo",
+"Volatilidade do mercado"
+]
   ]
 },
 {
@@ -140,7 +142,7 @@
 
   "market_context": "Os mercados atravessavam um período de forte volatilidade, marcado pelo agravamento das tensões comerciais internacionais e pelo aumento da incerteza quanto às perspetivas económicas. O anúncio de novas medidas tarifárias provocou uma rápida deterioração do sentimento dos investidores, conduzindo a movimentos acentuados de correção e a um aumento significativo da perceção de risco.",
 
-  "ai_signal": "Short",
+  "ai_signal": "Neutro",
 
   "ai_confidence": "Moderada",
 
@@ -162,16 +164,16 @@
 
   "ai_signal": "Short",
 
-  "ai_confidence": "Moderada",
+  "ai_confidence": "Baixa",
 
   "ai_summary": "O modelo identifica sinais consistentes com a continuação da pressão vendedora no curto prazo. A deterioração da tendência, associada ao enfraquecimento do momentum e ao aumento do risco observado, sugere uma probabilidade elevada de manutenção da dinâmica descendente na sessão seguinte.",
 
-  "ai_factors": [
-    "Posição do preço relativamente à média móvel de longo prazo",
-    "Volume relativo",
-    "Volatilidade do mercado",
-    "Momentum (RSI)"
-  ]
+"ai_factors": [
+  "Posição do preço relativamente à média móvel de longo prazo",
+  "Momentum (RSI)",
+  "Volatilidade do mercado",
+  "Volume relativo"
+]
 },
 {
   "id": "C10",
@@ -202,7 +204,7 @@
 
   "ai_signal": "Long",
 
-  "ai_confidence": "Moderada",
+  "ai_confidence": "Fraco",
 
   "ai_summary": "O modelo identifica sinais compatíveis com a continuação da tendência positiva no curto prazo. A combinação entre uma estrutura técnica favorável, momentum positivo e manutenção da força compradora sugere uma probabilidade acrescida de continuação do movimento ascendente, embora o elevado otimismo do mercado justifique alguma prudência na interpretação do sinal.",
 
@@ -300,11 +302,11 @@
 
   "market_context": "Os mercados mantinham um ambiente de incerteza persistente, levando muitos investidores a privilegiar estratégias de preservação de capital e ativos tradicionalmente associados a maior estabilidade. Este contexto favorecia uma procura acrescida por empresas com características defensivas, apesar da volatilidade observada no mercado.",
 
-  "ai_signal": "Long",
+  "ai_signal": "Short",
 
   "ai_confidence": "Baixa",
 
-  "ai_summary": "O modelo identifica sinais compatíveis com uma possível recuperação de curto prazo. Embora a tendência dominante permaneça frágil, alguns indicadores sugerem perda de intensidade da pressão vendedora e aumento da probabilidade de uma recuperação técnica na sessão seguinte.",
+  "ai_summary": "O modelo identifica sinais compatíveis com a continuação da fragilidade observada no curto prazo. Apesar de alguns movimentos de estabilização nas últimas observações, a estrutura técnica permanece descendente, o momentum continua enfraquecido e a volatilidade mantém-se elevada, favorecendo um posicionamento prudente na próxima sessão.",
 
   "ai_factors": [
     "Posição do preço relativamente à média móvel de longo prazo",
