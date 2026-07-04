@@ -2,6 +2,7 @@ import json
 import uuid
 from datetime import datetime
 from pathlib import Path
+import streamlit.components.v1 as components
 
 import streamlit as st
 from supabase import create_client, Client
@@ -155,7 +156,15 @@ def get_supabase_client() -> Client:
 
     return create_client(url, key)
 
-
+def scroll_to_top():
+    components.html(
+        """
+        <script>
+            window.parent.scrollTo({top: 0, behavior: 'smooth'});
+        </script>
+        """,
+        height=0,
+    )
 @st.cache_data
 def load_scenarios():
     with open(SCENARIOS_FILE, "r", encoding="utf-8") as file:
@@ -688,6 +697,7 @@ def render_block_c_editable(scenario):
 
 
 def render_scenario_page(scenario):
+    scroll_to_top()
     ensure_scenario_state(scenario)
     sid = scenario["id"]
     stage = st.session_state.scenario_stage[sid]
