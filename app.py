@@ -17,6 +17,14 @@ st.set_page_config(
 SCENARIOS_FILE = "scenarios.json"
 ASSETS_DIR = Path("assets/scenarios")
 SUPABASE_TABLE = "responses"
+USE_REDUCED_VERSION = True
+
+ACTIVE_SCENARIOS = [
+    "C01", "C03",
+    "C05", "C07",
+    "C09", "C11",
+    "C13", "C16",
+]
 
 DECISIONS = ["Long", "Neutro", "Short"]
 SCALE_MIN = 1
@@ -181,36 +189,6 @@ def load_scenarios():
         "ai_summary",
         "ai_factors",
     ]
-
-    USE_REDUCED_VERSION = True
-
-SCENARIO_SETS = {
-    "full": [
-        "C01", "C02", "C03", "C04",
-        "C05", "C06", "C07", "C08",
-        "C09", "C10", "C11", "C12",
-        "C13", "C14", "C15", "C16",
-    ],
-    "reduced": [
-        "C01", "C03",
-        "C05", "C07",
-        "C09", "C11",
-        "C13", "C16",
-    ],
-}
-
-
-def get_active_scenarios():
-    scenarios = load_scenarios()
-    active_set = "reduced" if USE_REDUCED_VERSION else "full"
-    active_ids = set(SCENARIO_SETS[active_set])
-
-    filtered = [s for s in scenarios if s["id"] in active_ids]
-
-    order = {sid: idx for idx, sid in enumerate(SCENARIO_SETS[active_set])}
-    filtered.sort(key=lambda s: order.get(s["id"], 999))
-
-    return filtered
 
     valid_signals = {"Long", "Neutro", "Short"}
     valid_confidence = {"Baixa", "Moderada", "Elevada"}
@@ -494,8 +472,8 @@ def render_initial_page():
 
     st.header("Parte 3 — Análise de cenários")
     st.markdown(
-        """
-        Ser-lhe-ão apresentados **16 cenários financeiros**, cada um representado por um dashboard com informação de mercado: preço, tendência, RSI, volume e volatilidade.
+        f"""
+        Ser-lhe-ão apresentados **{8 if USE_REDUCED_VERSION else 16} cenários financeiros**, cada um representado por um dashboard com informação de mercado: preço, tendência, RSI, volume e volatilidade.
 
         O objetivo é tomar uma decisão para a **próxima sessão de mercado**, com base exclusivamente na informação disponível.
 
@@ -1085,7 +1063,10 @@ def render_part_5_final():
 
 
 def submit_all_answers():
-    scenarios = get_active_scenarios()
+    scenarios = [
+        s for s in load_scenarios()
+        if (not USE_REDUCED_VERSION) or (s["id"] in ACTIVE_SCENARIOS)
+    ]
     finished_at = now_iso()
     rows = []
 
@@ -1148,6 +1129,7 @@ def submit_all_answers():
 
 
 
+
 def main():
     init_state()
 
@@ -1159,9 +1141,12 @@ def main():
         st.success("As suas respostas já foram registadas. Obrigado pela participação.")
         return
 
-    scenarios = get_active_scenarios()
-    scenarios_count = len(scenarios)
+    scenarios = [
+        s for s in load_scenarios()
+        if (not USE_REDUCED_VERSION) or (s["id"] in ACTIVE_SCENARIOS)
+    ]
 
+    scenarios_count = len(scenarios)
     final_sections = 7
     total_pages = 1 + scenarios_count + final_sections
 
